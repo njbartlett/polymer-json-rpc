@@ -1,0 +1,233 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+
+<!--
+An element providing JSON-RPC client functionality.
+
+Example:
+
+    <json-rpc
+        id="rpc"
+        url="http://example.com/jsonrpc"
+        last-result="{{rpcResult}}"
+        ></json-rpc>
+
+    <script>
+      ...
+      loadData: function() {
+        var rpc = this.$.rpc;
+
+        rpc.params = [ "param1", "param2" ];
+        rpc.generateRequest();
+      }
+      ...
+    </script>
+
+@demo
+-->
+<dom-module id="json-rpc">
+
+  <template>
+
+    <style>
+    :host {
+      display: none;
+    }
+    </style>
+
+    <iron-ajax
+        id="ajax"
+        method="POST"
+        url="[[url]]"
+        on-response="_handleResponse"
+        on-error="_handleError"
+        verbose
+    ></iron-ajax>
+
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'json-rpc',
+
+    /**
+     * Fired when a result is received.
+     *
+     * @event result
+     */
+
+    /**
+     * Fired when an error is received.
+     *
+     * @event error
+     */
+
+
+    properties: {
+
+      auto: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * The server URL
+       */
+      url: String,
+
+      method: String,
+
+      params: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+
+      /**
+       * Length of time in milliseconds to debounce multiple requests.
+       */
+      debounceDuration: {
+        type: Number,
+        value: 0,
+        notify: true
+      },
+
+      requestId: {
+        type: Number,
+        value: 0
+      },
+
+      lastResult: {
+        type: Object,
+        notify: true,
+        readOnly: true
+      },
+
+      lastError: {
+        type: Object,
+        notify: true,
+        readOnly: true
+      },
+
+
+    },
+
+    observers: [
+      'requestOptionsChanged(params,method,url)'
+    ],
+
+    // Element Lifecycle
+
+    ready: function() {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    /**
+     * The `seed-element-lasers` event is fired whenever `fireLasers` is called.
+     *
+     * @event seed-element-lasers
+     * @detail {{sound: String}}
+     */
+
+    /**
+     * Sometimes it's just nice to say hi.
+     *
+     * @param {string} greeting A positive greeting.
+     * @return {string} The full greeting.
+     */
+    sayHello: function(greeting) {
+      var response = greeting || 'Hello World!';
+      return 'seed-element says, ' + response;
+    },
+
+    /**
+     * Attempts to destroy this element's enemies with an any beam of light!
+     *
+     * Or, at least, dispatches an event in the vain hope that someone else will
+     * do the zapping.
+     */
+    fireLasers: function() {
+      this.fire('seed-element-lasers', {sound: 'Pew pew!'});
+    },
+
+    /**
+     * Performs a JSON-RPC request to the specified URL.
+     */
+    generateRequest: function() {
+      if (!this.method)
+        return;
+
+      var message = JSON.stringify({
+        jsonrpc: "2.0",
+        method: this.method,
+        params: this.params,
+        id: this.requestId++
+      });
+
+      this.$.ajax.body = message;
+      this.$.ajax.generateRequest();
+    },
+
+    requestOptionsChanged: function() {
+      if (!this.method)
+        return;
+
+      if (this.auto) {
+        this.debounce('generate-request', function() {
+          this.generateRequest();
+        }, this.debounceDuration);
+      }
+    },
+
+    _handleResponse: function(e, request) {
+      var response = request.response;
+      this._setLastResult(response.result);
+      this.fire('result', response.result);
+    },
+
+    _handleError: function() {
+      var error = this.$.ajax.lastError.error;
+      alert(error);
+    }
+
+  });
+
+</script>

@@ -1,0 +1,30 @@
+{
+  "name": "json-rpc",
+  "version": "0.0.1",
+  "authors": [
+    "Neil Bartlett <njbartlett@gmail.com>"
+  ],
+  "description": "A web component for making JSON-RPC requests",
+  "main": "json-rpc.html",
+  "keywords": [
+    "jsonrpc",
+    "polymer",
+    "webcomponent"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*"
+  }
+}
